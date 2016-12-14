@@ -40,6 +40,7 @@
 - every Spark app consists of driver program that launches various parallel operations on a cluster.
 - Driver programs access Spark through a SparkContext
 - To run these operations, driver programs typically manage a number of nodes called executors
+
 ![components_in_spark](img/components_in_spark.png)
 
 ### Standalone Applications
@@ -51,3 +52,48 @@
     - A cluster URL : Tells Spark how to connect to a cluster. `local` is that runs Spark on one thread on the local machine, without connecting to a cluster
     - An application name : This will identify your application on the cluster manager's UI
     
+## CHAPTER3. Programming with RDDs
+- In Spark all work is expressed as either `creating new RDDs`, `transforming existing RDDs`, or `calling operations on RDDs` to compute a result
+
+### RDD Basics
+- RDD is an immutable distributed collection of objects
+- Each RDD is split into multiple partitions
+- RDDs offer two types of operations
+    - Transformations : construct a new RDD from a previous one.
+    - Actions : compute a result based on an RDD
+- Spark's RDDs are by default recomputed each time you run an action on them
+- If you would like to reuse an RDD in multiple actions, you can ask Spark to persist it using `RDD.persist()`
+
+### Creating RDDs
+- SparkContext's `parallelize()` method
+- `SparkContext.textFile()`
+
+### RDD Operations
+#### Transformations
+- transformed RDDs are computed lazily, only when you use them in an action
+- Spark keeps track of the set of dependencies between different RDDs called the lineage graph
+
+![RDD_lineage_graph_created_during_log_analysis](img/lineage.png)
+
+#### Actions
+- They are the operations that return a final value to the driver program or write data to an external storage system
+- `collect()`function to retrieve the entire RDD
+- your entire dataset must fit in memory on a single machine to use `collect()`
+- `collect()` shouldn't be used on large datasets
+- use `saveAsTextFile()` action, `saveAsSequenceFile()`
+
+#### Lazy Evaluation
+- it is best to think of each RDD as consisting of instructions on how to compute the data that we build up through transformations
+- when we call `sc.textFile()`, the data is not loaded until it necessary.
+
+### Persistence
+- In Scala and Java, the default persist() will store the data in the JVM heap as unserialized objects
+- In Python, we always serialize the data that persist stores
+
+![storage_level](img/storageLevel.png)
+
+- If you attempt to cache too much data to fit in memory, Spark will automatically evict old partitions using a Least Recently Used (LRU) cache policy
+- `unpersist()` lets you manually remove them from the cache
+
+
+## CHAPTER 4. Working with Key/Value Pairs
